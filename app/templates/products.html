@@ -1,5 +1,33 @@
 {% extends 'base.html' %}
 {% block title %}List of products{% endblock %}
 {% block content %}
-
+<h2>Extracted Products</h2>
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Product Name</th>
+    <th>Total Opinions</th>
+    <th>With Advantages</th>
+    <th>With Disadvantages</th>
+    <th>Average Score</th>
+    <th>Downloads</th>
+  </tr>
+  {% for product in products %}
+  <tr>
+    <td>
+      <a href="{{ url_for('product', product_id=product.product_id) }}">
+        {{ product.product_name }}
+      </a>
+    </td>
+    <td>{{ product.opinions_count }}</td>
+    <td>{{ product.pros_count }}</td>
+    <td>{{ product.cons_count }}</td>
+    <td>{{ product.average_score }}</td>
+    <td>
+      <a href="{{ url_for('download_file', product_id=product.product_id, filetype='csv') }}">CSV</a> |
+      <a href="{{ url_for('download_file', product_id=product.product_id, filetype='xlsx') }}">XLSX</a> |
+      <a href="{{ url_for('download_file', product_id=product.product_id, filetype='json') }}">JSON</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 {% endblock %}

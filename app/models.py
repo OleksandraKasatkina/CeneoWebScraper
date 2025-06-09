@@ -54,15 +54,22 @@ class Product:
             os.mkdir("./app/data")
         if not os.path.exists("./app/data/opinions"):
             os.mkdir("./app/data/opinions")
-        with open(f".app/data/opinions/{self.product_id}.json", "w", encoding="UTF-8") as jf:
+        with open(f"./app/data/opinions/{self.product_id}.json", "w", encoding="UTF-8") as jf:
             json.dump([opinion.transform_to_dict() for opinion in self.opinions], jf, ensure_ascii=False, indent=4)
+        df = pd.DataFrame([opinion.transform_to_dict() for opinion in self.opinions])
+        df.to_csv(f"./app/data/opinions/{self.product_id}.csv", index=False, encoding="utf-8")
+        df.to_excel(f"./app/data/opinions/{self.product_id}.xlsx", index=False)
+
     def export_info(self):
         if not os.path.exists("./app/data"):
             os.mkdir("./app/data")
         if not os.path.exists("./app/data/products"):
             os.mkdir("./app/data/products")
-        with open(f".app/data/products/{self.product_id}.json", "w", encoding="UTF-8") as jf:
+        with open(f"./app/data/products/{self.product_id}.json", "w", encoding="UTF-8") as jf:
             json.dump(self.transform_to_dict(), jf, ensure_ascii=False, indent=4)
+        df = pd.DataFrame([self.transform_to_dict()])
+        df.to_csv(f"./app/data/products/{self.product_id}.csv", index=False, encoding="utf-8")
+        df.to_excel(f"./app/data/products/{self.product_id}.xlsx", index=False)
 
     def transform_to_dict(self):
         return {
@@ -89,14 +96,14 @@ class Product:
     def analyze(self):
         opinions = pd.DataFrame.from_dict([opinion.transform_to_dict() for opinion in self.opinions])
         self.stats["opinions_count"] = opinions.shape[0]
-        self.stats["pros_count"] = opinions.pros_pl.astype(bool).sum()
-        self.stats["cons_count"] = opinions.cons_pl.astype(bool).sum()
-        self.stats["pros_cons_count"] = opinions.apply(lambda o: bool(o.pros_pl) and bool(o.cons_pl), axis=1).sum()
-        self.stats["average_rate"] = opinions.stars.mean()
-        self.stats["pros"] = opinions.pros_en.explode().value_counts()
-        self.stats["cons"] = opinions.cons_en.explode().value_counts()
-        self.stats["recommendations"] = opinions.recommendation.value_counts(dropna=False).reindex([False, True, np.nan], fill_value=0)
-        self.stats["stars"] = opinions.stars.value_counts().reindex(list(np.arange(0,5.5,0.5)), fill_value=0)
+        self.stats["pros_count"] = int(opinions.pros_pl.astype(bool).sum())
+        self.stats["cons_count"] = int(opinions.cons_pl.astype(bool).sum())
+        self.stats["pros_cons_count"] = int(opinions.apply(lambda o: bool(o.pros_pl) and bool(o.cons_pl), axis=1).sum())
+        self.stats["average_rate"] = float(opinions.stars.mean())
+        self.stats["pros"] = opinions.pros_en.explode().value_counts().to_dict()
+        self.stats["cons"] = opinions.cons_en.explode().value_counts().to_dict()
+        self.stats["recommendations"] = opinions.recommendation.value_counts(dropna=False).reindex([False, True, np.nan], fill_value=0).to_dict()
+        self.stats["stars"] = opinions.stars.value_counts().reindex(list(np.arange(0,5.5,0.5)), fill_value=0).to_dict()
 
 class Opinion:
     selectors = {
@@ -111,6 +118,9 @@ class Opinion:
         "vote_no": ("button.vote-no","data-total-vote"),
         "published": ("span.user-post__published > time:nth-child(1)","datetime"),
         "purchased": ("span.user-post__published > time:nth-child(2)","datetime"),
+        "content_en": (),
+        "pros_en": (),
+        "cons_en": (),
     }
 
     def __init__(self, opinion_id="", author="", recommendation=False, stars=0.0, content="", pros=[], cons=[], vote_yes=0, vote_no=0, publish_date="", purchase_date=""):
@@ -130,7 +140,7 @@ class Opinion:
         self.cons_en = []
     
     def __str__(self):
-        return ("\n".join([f"{key}: {getattr(self, key)}" for key in self.selectors.keys()]))+f"content_en: {self.content_en}\npros_en: {self.pros_en}\ncons_en: {self.cons_en}"
+        return ("\n".join([f"{key}: {getattr(self, key)}" for key in self.selectors.keys()]))
     
     def __repr__(self):
         return "Opinion("+", ".join([f"{key}={str(getattr(self, key))}" for key in self.selectors.keys()])+")"
