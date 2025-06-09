@@ -2,9 +2,11 @@
 {% block title %}Opinions extraction{% endblock %}
 {% block content %}
     <form action="{{url_for('extract')}}" method="post">
-        {% if form.product_id.errors %}
-            <ul class="errors">{% for error in form.product_id.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-        {% endif %}
+        <div>
+            {% if form.product_id.errors %}
+                <ul class="errors">{% for error in form.product_id.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
         <div>
             {{form.product_id.label}}
         </div>
