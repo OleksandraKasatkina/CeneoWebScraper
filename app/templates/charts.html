@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Charts {{ product_name }}{% endblock %}
+{% block content %}
+
+<h2>Charts for Product: {{ product_info.product_name }}</h2>
+
+<h2 class="text-2xl font-bold mb-4">Charts for Product {{ product_id }}</h2>
+
+<div class="mb-6">
+  <h3>Star Ratings</h3>
+  <img src="{{ bar_chart_url }}" alt="Star Ratings Chart" class="chart-image" />
+</div>
+
+<div class="mb-6">
+  <h3>Recommendations</h3>
+  <img src="{{ pie_chart_url }}" alt="Recommendation Chart" class="chart-image" />
+</div>
+</div>
+
+<a href="{{ url_for('product', product_id=product_id) }}">
+  ← Back to Product
+</a>
+
+{% endblock %}

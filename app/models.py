@@ -3,15 +3,18 @@ import json
 import pandas as pd
 import numpy as np
 import requests
+import matplotlib
 from bs4 import BeautifulSoup
+from matplotlib import pyplot as plt
 from config import headers
-from app.utils import extract_data, translate_data
+from app.utils import extract_data, translate_data, create_if_not_exists
+
+matplotlib.use('agg')
 
 class Product:
     def __init__(self, product_id, product_name="", opinions=[], stats={}):
         self.product_id = product_id
         self.product_name = product_name
-        self.ceneo_url = f"https://www.ceneo.pl/{self.product_id}"
         self.opinions = opinions
         self.stats = stats
 
@@ -76,8 +79,7 @@ class Product:
         return {
             'product_id': self.product_id,
             'product_name': self.product_name,
-            'stats': self.stats,
-            'ceneo_url': self.ceneo_url
+            'stats': self.stats
         }
     
     def import_opinions(self):
@@ -107,6 +109,33 @@ class Product:
         self.stats["recommendations"] = opinions.recommendation.value_counts(dropna=False).reindex([False, True, np.nan], fill_value=0).to_dict()
         self.stats["stars"] = opinions.stars.value_counts().reindex(list(np.arange(0,5.5,0.5)), fill_value=0).to_dict()
 
+    def generate_charts(self):
+        create_if_not_exists("./app/static/pie_charts")
+        create_if_not_exists("./app/static/bar_charts")
+        recommendations = pd.Series(self.stats['recommendations'], index=self.stats['recommendations'].keys())
+        recommendations.plot.pie(
+            label = "",
+            labels = ["Recommend", "Not recommend", "No opinion"],
+            colors = ['turquoise', 'magenta', 'steelblue'],
+            autopct = lambda r: f"{r:.1f}%" if r>0 else ""
+            )
+        plt.title(f"Recommendations for product: {self.product_id}\nTotal number of opinions: {self.stats['opinions_count']}")
+        plt.savefig(f"./app/static/pie_charts/{self.product_id}.png")
+        plt.close()
+ 
+        plt.figure(figsize=(7,6))
+        stars = pd.Series(self.stats['stars'])
+        ax = stars.plot.bar(
+            color = ["turquoise" if s>3.5 else "magenta" if s<3 else "steelblue" for s in stars.index]
+        )
+        plt.bar_label(container=ax.containers[0])
+        plt.xlabel("Number of stars")
+        plt.ylabel("Number of opinions")
+        plt.title(f"Number of opinions about product {self.product_id}\nwith particular number of stars\nTotal number of opinions: {self.stats['opinions_count']}")
+        plt.xticks(rotation=0)
+        plt.savefig(f"./app/static/bar_charts/{self.product_id}.png")
+        plt.close()
+        
 class Opinion:
     selectors = {
         "opinion_id": (None, "data-entry-id"),

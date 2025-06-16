@@ -14,7 +14,7 @@
   {% for product in products %}
   <tr>
     <td>
-      <a href="https://www.ceneo.pl/{{ product.product_id }}" target="_blank">
+      <a href="{{ url_for('product', product_id=product.product_id) }}">
         {{ product.product_name }}
       </a>
     </td>

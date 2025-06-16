@@ -1,3 +1,4 @@
+import os
 from deep_translator import GoogleTranslator
 
 def extract_data(ancestor, selector=None, attribute=None, multiple=False):
@@ -22,3 +23,7 @@ def extract_data(ancestor, selector=None, attribute=None, multiple=False):
     
 def translate_data(text, source="pl", target="en"):
     return GoogleTranslator(source, target).translate(text=text)
+
+def create_if_not_exists(path):
+    if not os.path.exists(path):
+        os.mkdir(path)

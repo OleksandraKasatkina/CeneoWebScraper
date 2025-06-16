@@ -1,5 +1,116 @@
 {% extends 'base.html' %}
-{% block title %}{{product_id}}{% endblock %}
+{% block title %} Product {{product_id}}{% endblock %}
 {% block content %}
+
+<h2>Opinions for {{ product_id }}</h2>
+
+<form method="get" action="{{ url_for('product', product_id=product_id) }}">
+  <fieldset>
+    <legend>Filter & Sort Options</legend>
+    
+    <label for="filter_author">Author:</label>
+    <input type="text" id="filter_author" name="filter_author" value="{{ request.args.get('filter_author', '') }}">
+
+    <label for="filter_stars">Stars:</label>
+    <select name="filter_stars">
+      <option value="">Any</option>
+      {% for i in range(0, 11) %}
+        {% set val = i / 2 %}
+        <option value="{{ val }}" {% if request.args.get('filter_stars') == val|string %}selected{% endif %}>
+          {{ val }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="filter_recommendation">Recommendation:</label>
+    <select name="filter_recommendation">
+      <option value="">Any</option>
+      <option value="true" {% if request.args.get('filter_recommendation') == 'true' %}selected{% endif %}>Recommended</option>
+      <option value="false" {% if request.args.get('filter_recommendation') == 'false' %}selected{% endif %}>Not Recommended</option>
+      <option value="none" {% if request.args.get('filter_recommendation') == 'none' %}selected{% endif %}>No Opinion</option>
+    </select>
+
+    <label for="sort_by">Sort by:</label>
+    <select name="sort_by">
+      <option value="publish_date" {% if request.args.get('sort_by') == 'publish_date' %}selected{% endif %}>Publish Date</option>
+      <option value="stars" {% if request.args.get('sort_by') == 'stars' %}selected{% endif %}>Stars</option>
+      <option value="author" {% if request.args.get('sort_by') == 'author' %}selected{% endif %}>Author</option>
+    </select>
+
+    <label for="sort_order">Order:</label>
+    <select name="sort_order">
+      <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
+      <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Descending</option>
+    </select>
+
+    <button type="submit">Apply</button>
+  </fieldset>
+</form>
+
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Author</th>
+      <th>Publish Date</th>
+      <th>Stars</th>
+      <th>Recommendation</th>
+      <th>Content</th>
+      <th>Pros</th>
+      <th>Cons</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for opinion in opinions %}
+    <tr>
+      <td>{{ opinion.author }}</td>
+      <td>{{ opinion.publish_date }}</td>
+      <td>{{ opinion.stars }}</td>
+      <td>
+        {% if opinion.recommendation is sameas true %}
+          Recommended
+        {% elif opinion.recommendation is sameas false %}
+          Not Recommended
+        {% else %}
+          No Opinion
+        {% endif %}
+      </td>
+      <td>{{ opinion.content_pl }}</td>
+      <td>
+        {% for pro in opinion.pros_pl %}
+          {{ pro }}<br>
+        {% endfor %}
+      </td>
+      <td>
+        {% for con in opinion.cons_pl %}
+          {{ con }}<br>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top: 20px;">
+  {% if page > 1 %}
+    <a href="{{ url_for('product', product_id=product_id, page=page-1, **request.args.to_dict()) }}">Previous</a>
+  {% endif %}
+  Page {{ page }} of {{ total_pages }}
+  {% if page < total_pages %}
+    <a href="{{ url_for('product', product_id=product_id, page=page+1, **request.args.to_dict()) }}">Next</a>
+  {% endif %}
+</div>
+
+<hr>
+
+<p>
+  <strong>Download opinions:</strong><br>
+  <a href="{{ url_for('download_file', product_id=product_id, filetype='csv') }}">CSV</a> |
+  <a href="{{ url_for('download_file', product_id=product_id, filetype='xlsx') }}">XLSX</a> |
+  <a href="{{ url_for('download_file', product_id=product_id, filetype='json') }}">JSON</a>
+</p>
+
+<p>
+  <a href="{{ url_for('charts', product_id=product_id) }}">View Charts</a>
+</p>
 
 {% endblock %}
