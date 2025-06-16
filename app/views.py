@@ -51,6 +51,7 @@ def products():
                     "pros_count": stats.get("pros_count", 0),
                     "cons_count": stats.get("cons_count", 0),
                     "average_score": round(stats.get("average_rate", 0.0), 2),
+                    "ceneo_url": f"https://www.ceneo.pl/{product_id}"
                 })
     return render_template("products.html", products=products_data)
 

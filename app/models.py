@@ -11,6 +11,7 @@ class Product:
     def __init__(self, product_id, product_name="", opinions=[], stats={}):
         self.product_id = product_id
         self.product_name = product_name
+        self.ceneo_url = f"https://www.ceneo.pl/{self.product_id}"
         self.opinions = opinions
         self.stats = stats
 
@@ -75,7 +76,8 @@ class Product:
         return {
             'product_id': self.product_id,
             'product_name': self.product_name,
-            'stats': self.stats
+            'stats': self.stats,
+            'ceneo_url': self.ceneo_url
         }
     
     def import_opinions(self):
