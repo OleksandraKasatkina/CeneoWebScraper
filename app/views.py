@@ -68,14 +68,28 @@ def product(product_id):
     
     df = pd.DataFrame(opinions)
 
-    for col in ['author', 'stars', 'recommendation', 'content_pl']:
+    for col in ['author', 'stars', 'recommendation']:
         val = request.args.get(f'filter_{col}')
         if val:
-            df = df[df[col].astype(str).str.contains(val, case=False, na=False)]
+            if col == 'stars':
+                try:
+                    val_float = float(val)
+                    df = df[df[col] == val_float]
+                except ValueError:
+                    pass
+            elif col == 'recommendation':
+                if val == 'true':
+                    df = df[df[col] == True]
+                elif val == 'false':
+                    df = df[df[col] == False]
+                elif val == 'none':
+                    df = df[df[col].isnull()]
+            else:
+                df = df[df[col].astype(str).str.contains(val, case=False, na=False)]
 
     sort_by = request.args.get('sort_by', 'publish_date')
     if sort_by in df.columns:
-        df = df.sort_values(by=sort_by)
+        df = df.sort_values(by=sort_by, ascending=True)
 
     page = int(request.args.get('page', 1))
     per_page = 10
@@ -84,13 +98,16 @@ def product(product_id):
 
     opinions_page = df_page.to_dict(orient='records')
 
+    authors = sorted(df['author'].dropna().unique())
+
     return render_template("product.html",
                            product_id=product_id,
                            opinions=opinions_page,
                            page=page,
                            total_pages=total_pages,
                            product_name=Product(product_id).product_name,
-                           request=request)
+                           request=request,
+                           authors=authors)
 
 @app.route("/charts/<product_id>")
 def charts(product_id):

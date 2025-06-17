@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from matplotlib import pyplot as plt
 from config import headers
 from app.utils import extract_data, translate_data, create_if_not_exists
+from datetime import datetime
 
 matplotlib.use('agg')
 
@@ -193,8 +194,11 @@ class Opinion:
         self.stars = float(self.stars.split("/")[0].replace(",", "."))
         self.vote_yes = int(self.vote_yes)
         self.vote_no = int(self.vote_no)
+        self.publish_date = self.published
         return self
     
     def transform_to_dict(self):
-        return {key: getattr(self, key) for key in self.selectors.keys()}
+        data = {key: getattr(self, key) for key in self.selectors.keys()}
+        data["publish_date"] = self.publish_date
+        return data
     
